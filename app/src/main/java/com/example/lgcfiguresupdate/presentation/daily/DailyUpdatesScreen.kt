@@ -1,12 +1,13 @@
 package com.example.lgcfiguresupdate.presentation.daily
 
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,10 +22,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import java.math.RoundingMode
 import java.text.DecimalFormat
@@ -53,7 +54,10 @@ fun ResetButton() {
 
 @Composable
 fun SubmitButton() {
-    Button(onClick = { /*TODO*/ }) {
+    val context = LocalContext.current
+    Button(onClick = {
+        whatsAppResultShare(context)
+    }) {
         Text(text = "Share")
     }
 }
@@ -164,4 +168,20 @@ fun calculateATV(text: String) : String {
         return df.format(salesExVAT.toDouble()/text.toDouble()).toString()
     }
     return text
+}
+
+//Figure out what the fuck happened here
+private fun whatsAppResultShare(context: Context) {
+    Intent(Intent.ACTION_SEND).also {// launch main activity of the target app
+        it.setPackage("com.whatsapp")
+        it.putExtra(Intent.EXTRA_TEXT, "THIS IS A TEST")
+        it.type = "text/plain"
+        try {
+            context.startActivity(it)
+//            startActivity(context, it, )
+        } catch (e: ActivityNotFoundException) {
+            e.printStackTrace()
+        }
+    }
+
 }
