@@ -39,8 +39,9 @@ import java.text.DecimalFormat
 import kotlin.math.roundToInt
 
 var salesExVAT = ""
-var updateMessage = ""
-
+var atvExVAT = ""
+var numberOfTransactions = ""
+var messageFlag = ""
 @Composable
 fun DailyUpdatesScreen() {
     Column {
@@ -65,7 +66,7 @@ fun ResetButton() {
 fun SubmitButton() {
     val context = LocalContext.current
     Button(onClick = {
-        whatsAppResultShare(context)
+        whatsAppResultShare(context, generateMessage())
     }) {
         Text(text = "Share")
     }
@@ -83,18 +84,20 @@ fun SalesUpdate() {
         isError = text.length > charLimit
     }
 
+    // At the moment quite bloated, need to make it cleaner
+    // Some of the functionality is not needed here
     OutlinedTextField(
         value = text,
         onValueChange = {
-            text = it
+            if (it.matches(Regex("^\\d+\$"))) {text = it}
             validate(text) },
         singleLine = true,
         label = { Text(if (isError) "Sales*" else "Sales")},
         supportingText = {
-                         Text(
-                             modifier = Modifier.fillMaxWidth(),
-                             text = "Limit: ${text.length}/$charLimit",
-                             textAlign = TextAlign.End)
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = "Limit: ${text.length}/$charLimit",
+                textAlign = TextAlign.End)
         },
         isError = isError,
         keyboardActions = KeyboardActions{validate(text)},
@@ -115,7 +118,12 @@ fun CustomerNumberUpdate() {
     Text(text = "Number of Customers")
     OutlinedTextField(
         value = text,
-        onValueChange = {text = it})
+        onValueChange = {text = it},
+        singleLine = true,
+        label = {Text("ATV")},
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        modifier = Modifier.fillMaxWidth()
+    )
     Row {
         Text(text = "ATV")
         Result(calculateATV(text))
@@ -128,11 +136,16 @@ fun RadioSelector() {
         "Update",
         "Final",
     )
+
+    // This one can be used as a flag to see what was selected
     var selectedOption by remember {
         mutableStateOf("")
     }
     val onSelectionChange = { text: String ->
         selectedOption = text
+        // Then add logic to set the flag here
+        messageFlag = if (selectedOption == "Update") "Update"
+            else "Final"
     }
 
     Row(
@@ -201,7 +214,7 @@ fun calculateATV(text: String) : String {
     return text
 }
 
-private fun whatsAppResultShare(context: Context) {
+private fun whatsAppResultShare(context: Context, message: String) {
     Intent(Intent.ACTION_SEND).also {
         it.setPackage("com.whatsapp")
         it.putExtra(Intent.EXTRA_TEXT, "THIS IS A TEST")
@@ -212,4 +225,10 @@ private fun whatsAppResultShare(context: Context) {
             e.printStackTrace()
         }
     }
+}
+
+private fun generateMessage() : String {
+    if (messageFlag == "Update")
+        "Update: £$salesExVAT, Trans: $numberOfTransactions, ATV: $atvExVAT"
+    else  "Final: £$salesExVAT, Trans: $numberOfTransactions, ATV: $atvExVAT"
 }
