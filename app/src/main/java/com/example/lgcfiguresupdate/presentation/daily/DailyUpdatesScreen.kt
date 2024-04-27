@@ -19,7 +19,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,7 +56,9 @@ fun DailyUpdatesScreen() {
 
 @Composable
 fun ResetButton() {
-    Button(onClick = { /*TODO*/ }) {
+    Button(onClick = {
+
+    }) {
         Image(imageVector = Icons.Default.Refresh, contentDescription = "Refresh icon")
     }
 }
@@ -66,7 +67,8 @@ fun ResetButton() {
 fun SubmitButton() {
     val context = LocalContext.current
     Button(onClick = {
-        whatsAppResultShare(context, generateMessage())
+        if (salesExVAT !== "" && atvExVAT !== "" && numberOfTransactions !== "")
+            whatsAppResultShare(context, generateMessage())
     }) {
         Text(text = "Share")
     }
@@ -76,35 +78,14 @@ fun SubmitButton() {
 @Composable
 fun SalesUpdate() {
     var text by rememberSaveable { mutableStateOf("") }
-    var isError by rememberSaveable { mutableStateOf(false) }
-    val errorMessage = "Too many numbers!"
-    val charLimit = 6
-
-    fun validate(text: String) {
-        isError = text.length > charLimit
-    }
-
-    // At the moment quite bloated, need to make it cleaner
-    // Some of the functionality is not needed here
     OutlinedTextField(
         value = text,
         onValueChange = {
-            if (it.matches(Regex("^\\d+\$"))) {text = it}
-            validate(text) },
+            if (it.matches(Regex("^\\d*\$"))) {text = it} },
         singleLine = true,
-        label = { Text(if (isError) "Sales*" else "Sales")},
-        supportingText = {
-            Text(
-                modifier = Modifier.fillMaxWidth(),
-                text = "Limit: ${text.length}/$charLimit",
-                textAlign = TextAlign.End)
-        },
-        isError = isError,
-        keyboardActions = KeyboardActions{validate(text)},
+        label = { Text("Sales")},
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        modifier = Modifier.semantics {
-            if (isError) error(errorMessage)
-        }.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth()
     )
     Row {
         Text(text = "Result")
@@ -137,13 +118,11 @@ fun RadioSelector() {
         "Final",
     )
 
-    // This one can be used as a flag to see what was selected
     var selectedOption by remember {
         mutableStateOf("")
     }
     val onSelectionChange = { text: String ->
         selectedOption = text
-        // Then add logic to set the flag here
         messageFlag = if (selectedOption == "Update") "Update"
             else "Final"
     }
@@ -197,27 +176,26 @@ fun Result(result: String) {
 }
 
 fun calculateExVAT(result: String): String {
-    var result1 = result
-    if (result.isNotEmpty()){
+    if (result !== ""){
         salesExVAT = (result.toDouble() / 1.2).roundToInt().toString()
         return salesExVAT
     }
-    result1 = ""
-    return result1
+    return result
 }
 fun calculateATV(text: String) : String {
+    numberOfTransactions = text
     val df = DecimalFormat("#.##")
     df.roundingMode = RoundingMode.CEILING
     if (text.isNotEmpty()){
-        return df.format(salesExVAT.toDouble()/text.toDouble()).toString()
+        atvExVAT = df.format(salesExVAT.toDouble()/text.toDouble()).toString()
     }
-    return text
+    return atvExVAT
 }
 
 private fun whatsAppResultShare(context: Context, message: String) {
     Intent(Intent.ACTION_SEND).also {
         it.setPackage("com.whatsapp")
-        it.putExtra(Intent.EXTRA_TEXT, "THIS IS A TEST")
+        it.putExtra(Intent.EXTRA_TEXT, message)
         it.type = "text/plain"
         try {
             context.startActivity(it)
@@ -227,8 +205,9 @@ private fun whatsAppResultShare(context: Context, message: String) {
     }
 }
 
-private fun generateMessage() : String {
-    if (messageFlag == "Update")
+private fun generateMessage(): String {
+    return if (messageFlag == "Update")
         "Update: £$salesExVAT, Trans: $numberOfTransactions, ATV: $atvExVAT"
-    else  "Final: £$salesExVAT, Trans: $numberOfTransactions, ATV: $atvExVAT"
+    else
+        "Final: £$salesExVAT, Trans: $numberOfTransactions, ATV: $atvExVAT"
 }
