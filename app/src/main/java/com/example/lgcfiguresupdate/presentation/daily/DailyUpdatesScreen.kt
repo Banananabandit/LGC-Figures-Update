@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
@@ -23,42 +22,42 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import java.math.RoundingMode
 import java.text.DecimalFormat
 import kotlin.math.roundToInt
 
-var salesExVAT = ""
 var atvExVAT = ""
+var salesExVAT = ""
 var numberOfTransactions = ""
 var messageFlag = ""
 @Composable
 fun DailyUpdatesScreen() {
+    val viewModel: DailyUpdatesViewModel = viewModel()
+    val sales = viewModel.salesIncVAT.value
     Column {
-        SalesUpdate()
+        SalesUpdate(sales = sales, onTextChange = { newValue -> viewModel.onTextChange(newValue)})
         CustomerNumberUpdate()
         RadioSelector()
         Row {
             SubmitButton()
-            ResetButton()
+            ResetButton { viewModel.resetValues() }
         }
     }
 }
 
 @Composable
-fun ResetButton() {
-    Button(onClick = {
-
-    }) {
+fun ResetButton(onReset: () -> Unit) {
+    Button(onClick =
+        onReset
+    ) {
         Image(imageVector = Icons.Default.Refresh, contentDescription = "Refresh icon")
     }
 }
@@ -67,7 +66,7 @@ fun ResetButton() {
 fun SubmitButton() {
     val context = LocalContext.current
     Button(onClick = {
-        if (salesExVAT !== "" && atvExVAT !== "" && numberOfTransactions !== "")
+        if (atvExVAT !== "" && numberOfTransactions !== "")
             whatsAppResultShare(context, generateMessage())
     }) {
         Text(text = "Share")
@@ -76,20 +75,20 @@ fun SubmitButton() {
 
 
 @Composable
-fun SalesUpdate() {
-    var text by rememberSaveable { mutableStateOf("") }
+fun SalesUpdate(sales: String, onTextChange: (String) -> Unit) {
     OutlinedTextField(
-        value = text,
-        onValueChange = {
-            if (it.matches(Regex("^\\d*\$"))) {text = it} },
+        value = sales,
+        onValueChange = onTextChange
+//            if (it.matches(Regex("^\\d*\$"))) {text = it}
+        ,
         singleLine = true,
-        label = { Text("Sales")},
+        label = { Text("Sales") },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         modifier = Modifier.fillMaxWidth()
     )
     Row {
         Text(text = "Result")
-        Result(calculateExVAT(text))
+        Result(calculateExVAT(sales))
     }
 }
 
@@ -207,7 +206,7 @@ private fun whatsAppResultShare(context: Context, message: String) {
 
 private fun generateMessage(): String {
     return if (messageFlag == "Update")
-        "Update: £$salesExVAT, Trans: $numberOfTransactions, ATV: $atvExVAT"
+        "Update: £$salesExVAT, Trans: $numberOfTransactions, ATV: £$atvExVAT"
     else
-        "Final: £$salesExVAT, Trans: $numberOfTransactions, ATV: $atvExVAT"
+        "Final: £$salesExVAT, Trans: $numberOfTransactions, ATV: £$atvExVAT"
 }
