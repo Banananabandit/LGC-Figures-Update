@@ -42,9 +42,18 @@ var messageFlag = ""
 fun DailyUpdatesScreen() {
     val viewModel: DailyUpdatesViewModel = viewModel()
     val sales = viewModel.salesIncVAT.value
+    val transactions = viewModel.numberOfTransactions.value
     Column {
-        SalesUpdate(sales = sales, onTextChange = { newValue -> viewModel.onTextChange(newValue)})
-        CustomerNumberUpdate()
+        SalesUpdate(
+            sales = sales,
+            onTextChange = { newValue ->
+                viewModel.onTextChangeSales(newValue)
+            })
+        CustomerNumberUpdate(
+            customers = transactions,
+            onTextChange = { newValue ->
+                viewModel.onTextChangeTransactions(newValue)
+            })
         RadioSelector()
         Row {
             SubmitButton()
@@ -78,9 +87,7 @@ fun SubmitButton() {
 fun SalesUpdate(sales: String, onTextChange: (String) -> Unit) {
     OutlinedTextField(
         value = sales,
-        onValueChange = onTextChange
-//            if (it.matches(Regex("^\\d*\$"))) {text = it}
-        ,
+        onValueChange = onTextChange,
         singleLine = true,
         label = { Text("Sales") },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -93,12 +100,11 @@ fun SalesUpdate(sales: String, onTextChange: (String) -> Unit) {
 }
 
 @Composable
-fun CustomerNumberUpdate() {
-    var text by remember { mutableStateOf("") }
+fun CustomerNumberUpdate(customers: String, onTextChange: (String) -> Unit) {
     Text(text = "Number of Customers")
     OutlinedTextField(
-        value = text,
-        onValueChange = {text = it},
+        value = customers,
+        onValueChange = onTextChange,
         singleLine = true,
         label = {Text("ATV")},
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -106,7 +112,7 @@ fun CustomerNumberUpdate() {
     )
     Row {
         Text(text = "ATV")
-        Result(calculateATV(text))
+        Result(calculateATV(customers))
     }
 }
 
