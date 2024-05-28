@@ -42,18 +42,24 @@ var messageFlag = ""
 fun DailyUpdatesScreen() {
     val viewModel: DailyUpdatesViewModel = viewModel()
     val sales = viewModel.salesIncVAT.value
+    val salesExVAT = viewModel.salesExVAT.value
     val transactions = viewModel.numberOfTransactions.value
+    val ATV = viewModel.ATV.value
     Column {
         SalesUpdate(
             sales = sales,
             onTextChange = { newValue ->
                 viewModel.onTextChangeSales(newValue)
-            })
+            },
+            salesExVAT = salesExVAT
+        )
         CustomerNumberUpdate(
             customers = transactions,
             onTextChange = { newValue ->
                 viewModel.onTextChangeTransactions(newValue)
-            })
+            },
+            transactions = ATV
+        )
         RadioSelector()
         Row {
             SubmitButton()
@@ -64,9 +70,7 @@ fun DailyUpdatesScreen() {
 
 @Composable
 fun ResetButton(onReset: () -> Unit) {
-    Button(onClick =
-        onReset
-    ) {
+    Button(onClick = onReset) {
         Image(imageVector = Icons.Default.Refresh, contentDescription = "Refresh icon")
     }
 }
@@ -75,7 +79,6 @@ fun ResetButton(onReset: () -> Unit) {
 fun SubmitButton() {
     val context = LocalContext.current
     Button(onClick = {
-        if (atvExVAT !== "" && numberOfTransactions !== "")
             whatsAppResultShare(context, generateMessage())
     }) {
         Text(text = "Share")
@@ -84,7 +87,12 @@ fun SubmitButton() {
 
 
 @Composable
-fun SalesUpdate(sales: String, onTextChange: (String) -> Unit) {
+fun SalesUpdate(
+    sales: String,
+    onTextChange: (String) -> Unit,
+    salesExVAT: String
+
+) {
     OutlinedTextField(
         value = sales,
         onValueChange = onTextChange,
@@ -94,13 +102,17 @@ fun SalesUpdate(sales: String, onTextChange: (String) -> Unit) {
         modifier = Modifier.fillMaxWidth()
     )
     Row {
-        Text(text = "Result")
-        Result(calculateExVAT(sales))
+        Text(text = "Result: ")
+        Text(text = salesExVAT)
     }
 }
 
 @Composable
-fun CustomerNumberUpdate(customers: String, onTextChange: (String) -> Unit) {
+fun CustomerNumberUpdate(
+    customers: String,
+    onTextChange: (String) -> Unit,
+    transactions: String
+) {
     Text(text = "Number of Customers")
     OutlinedTextField(
         value = customers,
@@ -112,7 +124,7 @@ fun CustomerNumberUpdate(customers: String, onTextChange: (String) -> Unit) {
     )
     Row {
         Text(text = "ATV")
-        Result(calculateATV(customers))
+        Text(text = transactions)
     }
 }
 
@@ -173,28 +185,6 @@ fun RadioSelector() {
             }
         }
     }
-}
-
-@Composable
-fun Result(result: String) {
-    Text(text = result)
-}
-
-fun calculateExVAT(result: String): String {
-    if (result !== ""){
-        salesExVAT = (result.toDouble() / 1.2).roundToInt().toString()
-        return salesExVAT
-    }
-    return result
-}
-fun calculateATV(text: String) : String {
-    numberOfTransactions = text
-    val df = DecimalFormat("#.##")
-    df.roundingMode = RoundingMode.CEILING
-    if (text.isNotEmpty()){
-        atvExVAT = df.format(salesExVAT.toDouble()/text.toDouble()).toString()
-    }
-    return atvExVAT
 }
 
 private fun whatsAppResultShare(context: Context, message: String) {
