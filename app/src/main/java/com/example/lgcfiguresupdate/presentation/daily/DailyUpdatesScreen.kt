@@ -34,7 +34,6 @@ import java.math.RoundingMode
 import java.text.DecimalFormat
 import kotlin.math.roundToInt
 
-var atvExVAT = ""
 @Composable
 fun DailyUpdatesScreen() {
     val viewModel: DailyUpdatesViewModel = viewModel()
@@ -42,7 +41,6 @@ fun DailyUpdatesScreen() {
     val salesExVAT = viewModel.salesExVAT.value
     val transactions = viewModel.numberOfTransactions.value
     val atv = viewModel.atv.value
-    val messageFlag = viewModel.messageFlag.value
 
     Column {
         SalesUpdate(
@@ -63,7 +61,8 @@ fun DailyUpdatesScreen() {
             viewModel.setMessageFlag(message)
         }
         Row {
-//            SubmitButton()
+            SubmitButton { context ->
+                viewModel.whatsAppResultShare(context)}
             ResetButton { viewModel.resetValues() }
         }
     }
@@ -76,15 +75,15 @@ fun ResetButton(onReset: () -> Unit) {
     }
 }
 
-//@Composable
-//fun SubmitButton() {
-//    val context = LocalContext.current
-//    Button(onClick = {
-//            whatsAppResultShare(context, generateMessage())
-//    }) {
-//        Text(text = "Share")
-//    }
-//}
+@Composable
+fun SubmitButton(shareToWA: (Context) -> Unit) {
+    val context = LocalContext.current
+    Button(onClick = {
+            shareToWA(context)
+    }) {
+        Text(text = "Share")
+    }
+}
 
 
 @Composable
@@ -188,23 +187,3 @@ fun RadioSelector(setMessageFlag: (String) -> Unit) {
         }
     }
 }
-
-private fun whatsAppResultShare(context: Context, message: String) {
-    Intent(Intent.ACTION_SEND).also {
-        it.setPackage("com.whatsapp")
-        it.putExtra(Intent.EXTRA_TEXT, message)
-        it.type = "text/plain"
-        try {
-            context.startActivity(it)
-        } catch (e: ActivityNotFoundException) {
-            e.printStackTrace()
-        }
-    }
-}
-
-//private fun generateMessage(): String {
-//    return if (messageFlag == "Update")
-//        "Update: £$salesExVAT, Trans: $numberOfTransactions, ATV: £$atvExVAT"
-//    else
-//        "Final: £$salesExVAT, Trans: $numberOfTransactions, ATV: £$atvExVAT"
-//}

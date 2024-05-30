@@ -1,5 +1,8 @@
 package com.example.lgcfiguresupdate.presentation.daily
 
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import java.math.RoundingMode
@@ -12,7 +15,7 @@ class DailyUpdatesViewModel() : ViewModel() {
     var salesExVAT = mutableStateOf("")
     var atv = mutableStateOf("")
 
-    var messageFlag = mutableStateOf("")
+    private var messageFlag = mutableStateOf("")
 
     fun onTextChangeSales(newText: String) {
         if (verifyFieldInput(newText)) {
@@ -48,10 +51,24 @@ class DailyUpdatesViewModel() : ViewModel() {
     }
     private fun generateMessage(): String {
         return if (messageFlag.value == "Update")
-            "Update: £$salesExVAT, Trans: $numberOfTransactions, ATV: £$atvExVAT"
+            "Update: £${salesExVAT.value}, Trans: ${numberOfTransactions.value}, ATV: £${atv.value}"
         else
-            "Final: £$salesExVAT, Trans: $numberOfTransactions, ATV: £$atvExVAT"
+            "Final: £${salesExVAT.value}, Trans: ${numberOfTransactions.value}, ATV: £${atv.value}"
     }
+
+    fun whatsAppResultShare(context: Context) {
+        Intent(Intent.ACTION_SEND).also {
+            it.setPackage("com.whatsapp")
+            it.putExtra(Intent.EXTRA_TEXT, generateMessage())
+            it.type = "text/plain"
+            try {
+                context.startActivity(it)
+            } catch (e: ActivityNotFoundException) {
+                e.printStackTrace()
+            }
+        }
+    }
+
 
     private fun verifyFieldInput(text: String) = text.matches(Regex("^\\d*\$"))
 
