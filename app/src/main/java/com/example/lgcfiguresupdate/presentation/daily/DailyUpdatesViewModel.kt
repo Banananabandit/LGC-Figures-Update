@@ -10,8 +10,9 @@ class DailyUpdatesViewModel() : ViewModel() {
     val salesIncVAT = mutableStateOf("")
     val numberOfTransactions = mutableStateOf("")
     var salesExVAT = mutableStateOf("")
-    var ATV = mutableStateOf("")
+    var atv = mutableStateOf("")
 
+    var messageFlag = mutableStateOf("")
 
     fun onTextChangeSales(newText: String) {
         if (verifyFieldInput(newText)) {
@@ -38,8 +39,18 @@ class DailyUpdatesViewModel() : ViewModel() {
         if (salesExVAT.value != "" && transactions != "") {
             val df = DecimalFormat("#.##")
             df.roundingMode = RoundingMode.CEILING
-            ATV.value = df.format((salesExVAT.value.toDouble() / transactions.toDouble())).toString()
-        } else ATV.value = ""
+            atv.value = df.format((salesExVAT.value.toDouble() / transactions.toDouble())).toString()
+        } else atv.value = ""
+    }
+
+    fun setMessageFlag(message: String) {
+        messageFlag.value = message
+    }
+    private fun generateMessage(): String {
+        return if (messageFlag.value == "Update")
+            "Update: £$salesExVAT, Trans: $numberOfTransactions, ATV: £$atvExVAT"
+        else
+            "Final: £$salesExVAT, Trans: $numberOfTransactions, ATV: £$atvExVAT"
     }
 
     private fun verifyFieldInput(text: String) = text.matches(Regex("^\\d*\$"))

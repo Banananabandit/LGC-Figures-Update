@@ -35,16 +35,15 @@ import java.text.DecimalFormat
 import kotlin.math.roundToInt
 
 var atvExVAT = ""
-var salesExVAT = ""
-var numberOfTransactions = ""
-var messageFlag = ""
 @Composable
 fun DailyUpdatesScreen() {
     val viewModel: DailyUpdatesViewModel = viewModel()
     val sales = viewModel.salesIncVAT.value
     val salesExVAT = viewModel.salesExVAT.value
     val transactions = viewModel.numberOfTransactions.value
-    val ATV = viewModel.ATV.value
+    val atv = viewModel.atv.value
+    val messageFlag = viewModel.messageFlag.value
+
     Column {
         SalesUpdate(
             sales = sales,
@@ -58,11 +57,13 @@ fun DailyUpdatesScreen() {
             onTextChange = { newValue ->
                 viewModel.onTextChangeTransactions(newValue)
             },
-            transactions = ATV
+            transactions = atv
         )
-        RadioSelector()
+        RadioSelector{ message ->
+            viewModel.setMessageFlag(message)
+        }
         Row {
-            SubmitButton()
+//            SubmitButton()
             ResetButton { viewModel.resetValues() }
         }
     }
@@ -75,15 +76,15 @@ fun ResetButton(onReset: () -> Unit) {
     }
 }
 
-@Composable
-fun SubmitButton() {
-    val context = LocalContext.current
-    Button(onClick = {
-            whatsAppResultShare(context, generateMessage())
-    }) {
-        Text(text = "Share")
-    }
-}
+//@Composable
+//fun SubmitButton() {
+//    val context = LocalContext.current
+//    Button(onClick = {
+//            whatsAppResultShare(context, generateMessage())
+//    }) {
+//        Text(text = "Share")
+//    }
+//}
 
 
 @Composable
@@ -129,7 +130,7 @@ fun CustomerNumberUpdate(
 }
 
 @Composable
-fun RadioSelector() {
+fun RadioSelector(setMessageFlag: (String) -> Unit) {
     val options = listOf(
         "Update",
         "Final",
@@ -140,8 +141,9 @@ fun RadioSelector() {
     }
     val onSelectionChange = { text: String ->
         selectedOption = text
-        messageFlag = if (selectedOption == "Update") "Update"
+        val messageFlag = if (selectedOption == "Update") "Update"
             else "Final"
+        setMessageFlag(messageFlag)
     }
 
     Row(
@@ -200,9 +202,9 @@ private fun whatsAppResultShare(context: Context, message: String) {
     }
 }
 
-private fun generateMessage(): String {
-    return if (messageFlag == "Update")
-        "Update: £$salesExVAT, Trans: $numberOfTransactions, ATV: £$atvExVAT"
-    else
-        "Final: £$salesExVAT, Trans: $numberOfTransactions, ATV: £$atvExVAT"
-}
+//private fun generateMessage(): String {
+//    return if (messageFlag == "Update")
+//        "Update: £$salesExVAT, Trans: $numberOfTransactions, ATV: £$atvExVAT"
+//    else
+//        "Final: £$salesExVAT, Trans: $numberOfTransactions, ATV: £$atvExVAT"
+//}
