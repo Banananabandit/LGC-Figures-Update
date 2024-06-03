@@ -1,16 +1,16 @@
 package com.example.lgcfiguresupdate.presentation.daily
 
-import android.content.ActivityNotFoundException
 import android.content.Context
-import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
@@ -25,14 +25,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import java.math.RoundingMode
-import java.text.DecimalFormat
-import kotlin.math.roundToInt
 
 @Composable
 fun DailyUpdatesScreen() {
@@ -42,20 +41,23 @@ fun DailyUpdatesScreen() {
     val transactions = viewModel.numberOfTransactions.value
     val atv = viewModel.atv.value
 
-    Column {
+    Column(modifier = Modifier.padding(16.dp)) {
         SalesUpdate(
             sales = sales,
             onTextChange = { newValue ->
                 viewModel.onTextChangeSales(newValue)
             },
-            salesExVAT = salesExVAT
+            salesExVAT = salesExVAT,
+            modifier = Modifier
         )
+        Spacer(modifier = Modifier.padding(16.dp))
         CustomerNumberUpdate(
             customers = transactions,
             onTextChange = { newValue ->
                 viewModel.onTextChangeTransactions(newValue)
             },
-            transactions = atv
+            transactions = atv,
+            modifier = Modifier
         )
         RadioSelector{ message ->
             viewModel.setMessageFlag(message)
@@ -68,30 +70,14 @@ fun DailyUpdatesScreen() {
     }
 }
 
-@Composable
-fun ResetButton(onReset: () -> Unit) {
-    Button(onClick = onReset) {
-        Image(imageVector = Icons.Default.Refresh, contentDescription = "Refresh icon")
-    }
-}
-
-@Composable
-fun SubmitButton(shareToWA: (Context) -> Unit) {
-    val context = LocalContext.current
-    Button(onClick = {
-            shareToWA(context)
-    }) {
-        Text(text = "Share")
-    }
-}
 
 
 @Composable
 fun SalesUpdate(
     sales: String,
     onTextChange: (String) -> Unit,
-    salesExVAT: String
-
+    salesExVAT: String,
+    modifier: Modifier
 ) {
     OutlinedTextField(
         value = sales,
@@ -99,11 +85,19 @@ fun SalesUpdate(
         singleLine = true,
         label = { Text("Sales") },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        modifier = Modifier.fillMaxWidth()
+        keyboardActions = KeyboardActions(), // TODO: add logic here
+        modifier = modifier.fillMaxWidth()
     )
-    Row {
-        Text(text = "Result: ")
-        Text(text = salesExVAT)
+    Row(modifier = modifier.padding(top = 8.dp)) {
+        Text(
+            text = "Result: ",
+            modifier = modifier.padding(start = 16.dp),
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = salesExVAT,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
@@ -111,20 +105,27 @@ fun SalesUpdate(
 fun CustomerNumberUpdate(
     customers: String,
     onTextChange: (String) -> Unit,
-    transactions: String
+    transactions: String,
+    modifier: Modifier
 ) {
-    Text(text = "Number of Customers")
     OutlinedTextField(
         value = customers,
         onValueChange = onTextChange,
         singleLine = true,
-        label = {Text("ATV")},
+        label = {Text("Number of Customers")},
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
     )
-    Row {
-        Text(text = "ATV")
-        Text(text = transactions)
+    Row(modifier = modifier.padding(top = 8.dp)) {
+        Text(
+            text = "ATV",
+            modifier = modifier.padding(start = 16.dp),
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = transactions,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
@@ -185,5 +186,21 @@ fun RadioSelector(setMessageFlag: (String) -> Unit) {
                 )
             }
         }
+    }
+}
+@Composable
+fun SubmitButton(shareToWA: (Context) -> Unit) {
+    val context = LocalContext.current
+    Button(onClick = {
+        shareToWA(context)
+    }) {
+        Text(text = "Share")
+    }
+}
+
+@Composable
+fun ResetButton(onReset: () -> Unit) {
+    Button(onClick = onReset) {
+        Image(imageVector = Icons.Default.Refresh, contentDescription = "Refresh icon")
     }
 }
