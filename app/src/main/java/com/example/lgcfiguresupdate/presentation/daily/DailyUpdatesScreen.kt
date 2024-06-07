@@ -59,9 +59,11 @@ fun DailyUpdatesScreen() {
             transactions = atv,
             modifier = Modifier
         )
+        Spacer(modifier = Modifier.padding(16.dp))
         RadioSelector{ message ->
             viewModel.setMessageFlag(message)
         }
+        Spacer(modifier = Modifier.padding(16.dp))
         Row {
             SubmitButton { context ->
                 viewModel.whatsAppResultShare(context)}
@@ -118,7 +120,7 @@ fun CustomerNumberUpdate(
     )
     Row(modifier = modifier.padding(top = 8.dp)) {
         Text(
-            text = "ATV",
+            text = "ATV: ",
             modifier = modifier.padding(start = 16.dp),
             fontWeight = FontWeight.Bold
         )
@@ -161,6 +163,7 @@ fun RadioSelector(setMessageFlag: (String) -> Unit) {
                     text = text,
                     style = typography.bodyMedium.merge(),
                     color = Color.White,
+                    fontWeight = FontWeight.Bold,
                     modifier = Modifier
                         .clip(
                             shape = RoundedCornerShape(
