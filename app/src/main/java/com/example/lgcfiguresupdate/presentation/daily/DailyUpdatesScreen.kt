@@ -25,10 +25,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -40,6 +44,7 @@ fun DailyUpdatesScreen() {
     val salesExVAT = viewModel.salesExVAT.value
     val transactions = viewModel.numberOfTransactions.value
     val atv = viewModel.atv.value
+    val localFocusManager: FocusManager = LocalFocusManager.current
 
     Column(modifier = Modifier.padding(16.dp)) {
         SalesUpdate(
@@ -48,7 +53,8 @@ fun DailyUpdatesScreen() {
                 viewModel.onTextChangeSales(newValue)
             },
             salesExVAT = salesExVAT,
-            modifier = Modifier
+            modifier = Modifier,
+            focusManager = localFocusManager
         )
         Spacer(modifier = Modifier.padding(16.dp))
         CustomerNumberUpdate(
@@ -79,15 +85,16 @@ fun SalesUpdate(
     sales: String,
     onTextChange: (String) -> Unit,
     salesExVAT: String,
-    modifier: Modifier
+    modifier: Modifier,
+    focusManager: FocusManager
 ) {
     OutlinedTextField(
         value = sales,
         onValueChange = onTextChange,
         singleLine = true,
         label = { Text("Sales") },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        keyboardActions = KeyboardActions(), // TODO: add logic here
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
+        keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down )}),
         modifier = modifier.fillMaxWidth()
     )
     Row(modifier = modifier.padding(top = 8.dp)) {
